@@ -17,8 +17,9 @@ namespace API_TEST
         [TestInitialize]
         public async Task Setup()
         {
+            var dbName = "ProduitsTestDB_" + System.Guid.NewGuid().ToString("N");
             var options = new DbContextOptionsBuilder<ProduitsDbContext>()
-                .UseNpgsql("Server=localhost;port=5432;Database=ProduitsTestDB;uid=postgres;password=postgres;")
+                .UseNpgsql($"Server=localhost;port=5432;Database={dbName};uid=postgres;password=postgres;")
                 .Options;
 
             _context = new ProduitsDbContext(options);
@@ -39,7 +40,7 @@ namespace API_TEST
         [TestMethod]
         public async Task PostProduit_And_GetProduit_EndToEnd()
         {
-            // Arrange
+         
             var marque = new Marque { NomMarque = "Test Marque" };
             var type = new TypeProduit { NomTypeProduit = "Test Type" };
             _context.Marques.Add(marque);
@@ -56,20 +57,19 @@ namespace API_TEST
                 StockMax = 20
             };
 
-            // Act - POST
             var postResult = await _controller.PostProduit(newProduit);
 
-            // Assert - POST
+            //  POST
             var createdAtActionResult = postResult.Result as CreatedAtActionResult;
             Assert.IsNotNull(createdAtActionResult, "Result should be CreatedAtActionResult (code 201)");
             var createdProduit = createdAtActionResult.Value as Produit;
             Assert.IsNotNull(createdProduit);
             Assert.IsTrue(createdProduit.IdProduit > 0, "L'identifiant auto-généré doit être supérieur à 0");
 
-            // Act - GET
+            // GET
             var getResult = await _controller.GetProduit(createdProduit.IdProduit);
 
-            // Assert - GET
+            
             var okResult = getResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult, "Result should be 200 OK");
             var retrievedProduit = okResult.Value as Produit;
@@ -80,11 +80,13 @@ namespace API_TEST
         [TestMethod]
         public async Task PutProduit_UpdatesSuccessfully()
         {
-            // Arrange
+            
             var marque = new Marque { NomMarque = "Test Marque" };
             var type = new TypeProduit { NomTypeProduit = "Test Type" };
             _context.Marques.Add(marque);
             _context.TypeProduits.Add(type);
+            await _context.SaveChangesAsync();
+
             var produit = new Produit 
             { 
                 NomProduit = "Original Name", 
@@ -97,7 +99,7 @@ namespace API_TEST
             _context.Produits.Add(produit);
             await _context.SaveChangesAsync();
             
-            _context.ChangeTracker.Clear(); // Simuler une nouvelle requête
+            _context.ChangeTracker.Clear(); 
 
             var updatedProduit = new Produit
             {
@@ -110,13 +112,13 @@ namespace API_TEST
                 StockMax = 100
             };
 
-            // Act
+           
             var putResult = await _controller.PutProduit(updatedProduit.IdProduit, updatedProduit);
 
-            // Assert
+         
             Assert.IsInstanceOfType(putResult, typeof(NoContentResult), "Result should be 204 NoContent");
 
-            // Verify with GET
+       
             var getResult = await _controller.GetProduit(updatedProduit.IdProduit);
             var okResult = getResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult, "Le produit mis à jour devrait être trouvé (200 OK)");
@@ -129,11 +131,13 @@ namespace API_TEST
         [TestMethod]
         public async Task DeleteProduit_DeletesSuccessfully()
         {
-            // Arrange
+           
             var marque = new Marque { NomMarque = "Test Marque" };
             var type = new TypeProduit { NomTypeProduit = "Test Type" };
             _context.Marques.Add(marque);
             _context.TypeProduits.Add(type);
+            await _context.SaveChangesAsync();
+
             var produit = new Produit 
             { 
                 NomProduit = "To Delete", 
@@ -148,13 +152,13 @@ namespace API_TEST
             
             _context.ChangeTracker.Clear();
 
-            // Act
+          
             var deleteResult = await _controller.DeleteProduit(produit.IdProduit);
 
-            // Assert
+        
             Assert.IsInstanceOfType(deleteResult, typeof(NoContentResult), "Result should be 204 NoContent");
 
-            // Verify with GET
+        
             var getResult = await _controller.GetProduit(produit.IdProduit);
             Assert.IsInstanceOfType(getResult.Result, typeof(NotFoundResult), "Le produit supprimé ne devrait plus être trouvé (404 NotFound)");
         }
@@ -162,7 +166,7 @@ namespace API_TEST
         [TestMethod]
         public async Task PostProduit_InvalidMarque_ThrowsDbUpdateException()
         {
-            // Arrange
+       
             var type = new TypeProduit { NomTypeProduit = "Test Type" };
             _context.TypeProduits.Add(type);
             await _context.SaveChangesAsync();
@@ -170,14 +174,14 @@ namespace API_TEST
             var produit = new Produit 
             { 
                 NomProduit = "Invalid Produit", 
-                IdMarque = 99999, // Non-existent Marque
+                IdMarque = 99999,
                 IdTypeProduit = type.IdTypeProduit,
                 StockReel = 10,
                 StockMin = 0,
                 StockMax = 100
             };
 
-            // Act & Assert
+         
             await Assert.ThrowsExceptionAsync<DbUpdateException>(async () =>
             {
                 await _controller.PostProduit(produit);
