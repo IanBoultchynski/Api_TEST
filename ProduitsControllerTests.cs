@@ -42,7 +42,7 @@ namespace API_TEST
             Assert.IsNotNull(okResult, "Le resultat doit etre de type OkObjectResult.");
             Assert.AreEqual(200, okResult.StatusCode);
             
-            var dto = okResult.Value as ProduitDto;
+            var dto = okResult.Value as ProduitDetailDto;
             Assert.IsNotNull(dto);
             Assert.AreEqual(testId, dto.Id);
         }

@@ -77,7 +77,7 @@ namespace API_TEST
             var okResult = getResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
             
-            var retrievedProduit = okResult.Value as ProduitDto;
+            var retrievedProduit = okResult.Value as ProduitDetailDto;
             Assert.IsNotNull(retrievedProduit);
             Assert.AreEqual(newProduit.NomProduit, retrievedProduit.Nom);
             Assert.AreEqual("Test Marque", retrievedProduit.Marque);
@@ -125,7 +125,7 @@ namespace API_TEST
             var okResult = getResult.Result as OkObjectResult;
             Assert.IsNotNull(okResult);
             
-            var retrievedProduit = okResult.Value as ProduitDto;
+            var retrievedProduit = okResult.Value as ProduitDetailDto;
             Assert.IsNotNull(retrievedProduit);
             Assert.AreEqual("Updated Name", retrievedProduit.Nom);
         }
